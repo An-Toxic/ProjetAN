@@ -54,8 +54,8 @@ def balayageCstMin(f,a,b,n):
         y=f(x)
         xlist.append(x)
         ylist.append(y)
-    pl.plot(xlist,ylist)
-    pl.show()
+    #pl.plot(xlist,ylist)
+    #pl.show()
     return (xlist[findMin(ylist)],ylist[findMin(ylist)])
 
 
@@ -103,13 +103,15 @@ def ShowError(methode,f,a,b,n):
         nlist.append(i)
         x,y=methode(f,a,b,i)
         Errorlist.append(math.fabs(y-min))
-    pl.plot(nlist,Errorlist)
-    pl.show()
-    #return nlist,Errorlist
-
-#ShowError(balayageAleaMin,f,0,3,20)
-#print(balayageAleaMin(f,0,3,20))
-
+    
+    return nlist,Errorlist
+'''''
+lstx,lsty=ShowError(balayageCstMin,f,0,3,100)
+lstx2,lsty2=ShowError(balayageAleaMin,f,0,3,100)
+pl.plot(lstx,lsty,'r')
+pl.plot(lstx2,lsty2,'g')
+pl.show()
+'''
 def derivee(f,x):
     h=1*10**-6
     return (f(x+h)-f(x))/h
@@ -189,8 +191,8 @@ def graphe3dH():
 
 #fonctions qui permettent de tracer les lignes de niveau de h et g
 def ligneNiveauH():
-    x=np.linspace(-100,100,1000)
-    y=np.linspace(-100,100,1000)
+    x=np.linspace(-100,100,10000)
+    y=np.linspace(-100,100,10000)
     X,Y=np.meshgrid(x,y)
     h2 = np.vectorize(h)
     Z=h2(X,Y)
@@ -198,13 +200,13 @@ def ligneNiveauH():
     pl.show()
 
 def ligneNiveauG(a,b):
-    x=np.linspace(-100,100,1000)
-    y=np.linspace(-100,100,1000)
+    x=np.linspace(-10,10,1000)
+    y=np.linspace(-10,10,1000)
     X,Y=np.meshgrid(x,y)
     #g = np.vectorize(gab)
     Z=gab(a,b,X,Y)
-    pl.contour(X,Y,Z,50)
-    pl.show()
+    pl.contour(X,Y,Z,200)
+    
 
 
 #ligneNiveauG(2,2/7)
@@ -249,7 +251,7 @@ def complexe_modulo(z):
 #print(norme(0,2,0).real)
 
 def gradpc(eps,m,u,x0,y0,df1,df2):
-    a,b=1,20 #parametre de la fonction gab
+    a,b=2,2/7 #parametre de la fonction gab
     min = 0 #minimum du fonction qu'on veut etudier, pour g c'est 0
     nlist=[]
     xlist=[]
@@ -269,23 +271,70 @@ def gradpc(eps,m,u,x0,y0,df1,df2):
         Errorlist.append(math.fabs(gab(a,b,x,y)-min))
         n=n+1
     #pl.plot(nlist,xlist,'r')
-    #pl.plot(xlist,ylist)  #pour afficher l'evolution de (xn,yn) dans le plan
-    pl.plot(nlist,Errorlist)  #pour afficher la courbe d'erreur relatif pour g(1,20)
+    pl.plot(xlist,ylist,'r')  #pour afficher l'evolution de (xn,yn) dans le plan
+    pl.title(u)
+    ligneNiveauG(2,2/7)
+    #print(len(nlist))
+    #pl.plot(nlist,Errorlist)  #pour afficher la courbe d'erreur relatif pour g(1,20)
     #pl.plot(nlist,ylist,'g')
     pl.show()
     
 
 #gradpc(1*10**-6,200,0.001,0,0,dhx,dhy)
-gradpc(1*10**-5,120,-0.99,7,1.5,dgx,dgy)
+#gradpc(1*10**-5,200,-0.001,7,1.5,dgx,dgy)
+'''''
+listpas=[-0.99,-0.5,-0.1,-0.01,-0.001]
+for pas in listpas:
+    #print(pas)
+    gradpc(1*10**-5,120,pas,7,1.5,dgx,dgy)
 
 
+ def gradamax(eps,m,u,x0,y0,f,df1,df2):
+    k=0
+    xn,yn=x0,y0
+    while(k>m or norme(df1(xn,yn),df2(xn,yn),0)>eps):
+        F1=f((xn,yn)+k*u*(df1(xn,yn),df2(xn,yn)))
+        F2=f((xn,yn)+(k+1)*u*(df1(xn,yn),df2(xn,yn)))
+        while(F2>F1):     #on augmente k tant que f2>f1
+            (xn,yn)=(xn,yn)+u*(df1(xn,yn),df2(xn,yn))
+            k=k+1
 
 
+'''
 
+################################"
+# Partie D
+def G(A,y,secondMembre):
+    return 2*(np.dot(A,y)-secondMembre)
+
+#resolution systemes lineaires par algorithme d'inversion de matrices
+def InvMatrice(eps,m,A,x0,b):
+    k=0
+    yk=x0
+    #vecteur initial
+    if(np.linalg.norm(G(A,yk,b)) !=0):
+        pk=(np.linalg.norm(G(A,yk,b)))**2/(2*(np.dot(np.dot(np.matrix.transpose(G(A,yk,b)),A),G(A,yk,b))))
+    else:
+        pk=0
+    #calcul du pas pk
+    yk1=yk-np.dot(pk,G(A,yk,b))
     
-
+    while(np.linalg.norm(yk1-yk)>eps): 
+        #criteres d'arret
+        yk=yk1
+        print(yk1)
+        if(np.linalg.norm(G(A,yk,b)) !=0):
+            pk=(np.linalg.norm(G(A,yk,b)))**2/(2*(np.dot(np.dot(np.matrix.transpose(G(A,yk,b)),A),G(A,yk,b))))
+        else:
+            pk=0
+        yk1=yk-np.dot(pk,G(A,yk,b))
+        k=k+1
     
+    return yk1
 
-        
+b0=np.array([3, 2])
+Matrice=np.array([[1,1],[1, 0]])
 
+print(InvMatrice(1*10**-6,50,Matrice,(0,0),b0))
 
+#print(np.dot(Matrice,b0))
