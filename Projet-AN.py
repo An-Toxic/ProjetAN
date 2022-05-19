@@ -1,10 +1,12 @@
 from cmath import cos, sin, sqrt
 from gettext import find
 import random as r
+from re import A
 from typing import Any
 import matplotlib.pyplot as pl
 import math
 import numpy as np
+
 
 #methode pour trouver le minimum d'une liste
 
@@ -58,6 +60,10 @@ def balayageCstMin(f,a,b,n):
     #pl.show()
     return (xlist[findMin(ylist)],ylist[findMin(ylist)])
 
+def complexe_modulo(z):
+    a = z.real
+    b = z.imag
+    return math.sqrt(a**2+b**2)
 
 #methode par balayage aleatoire 
 def balayageAleaMin(function,a,b,n):
@@ -153,7 +159,7 @@ def g(x,y):
     return (x**2)/a+(y**2)/b
 
 def h(x,y):
-    return math.cos(x)*math.sin(y)
+    return cos(x)*sin(y)
 
 #represenation 3D des graphes de g
 def graphe3dG(a,b):
@@ -171,8 +177,8 @@ def graphe3dG(a,b):
     pl.show()
 
 def graphe3dH():
-    x=np.linspace(-100,100,1000)
-    y=np.linspace(-100,100,1000)
+    x=np.linspace(-10,10,1000)
+    y=np.linspace(-10,10,1000)
     X,Y=np.meshgrid(x,y)
     h2 = np.vectorize(h)
     Z=h2(X,Y)
@@ -191,13 +197,13 @@ def graphe3dH():
 
 #fonctions qui permettent de tracer les lignes de niveau de h et g
 def ligneNiveauH():
-    x=np.linspace(-100,100,10000)
-    y=np.linspace(-100,100,10000)
+    x=np.linspace(-5,5,1000)
+    y=np.linspace(-5,5,1000)
     X,Y=np.meshgrid(x,y)
     h2 = np.vectorize(h)
     Z=h2(X,Y)
     pl.contour(X,Y,Z,10)
-    pl.show()
+    
 
 def ligneNiveauG(a,b):
     x=np.linspace(-10,10,1000)
@@ -227,7 +233,7 @@ print(dfy(g,1,1))
 ###########################################
 #calcul a la min des derivées partielle de h
 def dhx(x,y):
-    return -sin(x)*-sin(y)
+    return -sin(x)*sin(y)
 def dhy(x,y):
     return cos(x)*cos(y)
 
@@ -237,16 +243,22 @@ def dgx(a,b,x,y):
 def dgy(a,b,x,y):
     return 2*y/b
 
+def dgx1(x,y):
+    a=2
+    b=2/7
+    return 2*x/a
+def dgy1(x,y):
+    a=2
+    b=2/7
+    return 2*y/b
+
 ###########################################
 
 
 def norme(x,y,z):
     return math.sqrt(x**2+y**2+z**2)
 
-def complexe_modulo(z):
-    a = z.real
-    b = z.imag
-    return math.sqrt(a**2+b**2)
+
 
 #print(norme(0,2,0).real)
 
@@ -256,51 +268,73 @@ def gradpc(eps,m,u,x0,y0,df1,df2):
     nlist=[]
     xlist=[]
     ylist=[]
-    Errorlist=[] #liste qui continet les erreurs aboslues
+    Errorlist=[] #liste qui contient les erreurs absolues
     x,y=x0,y0 #initialisation du point de depart
     n=0 #initialisation du compteur
-    while(complexe_modulo(norme(df1(a,b,x,y),df2(a,b,x,y),0))>eps or n<m): #l'algorithme s'arrete si la norme du gradiant est inf a eps 
+    while np.linalg.norm((np.real(df1(x,y)),np.real(df2(x,y))))>eps or n<m: #l'algorithme s'arrete si la norme du gradiant est inf a eps 
        #ou si les nombres d'iterations depassent m
         nlist.append(n)
         xlist.append(x)
         ylist.append(y)
-        x=x+u*df1(a,b,x,y)   
+        x=x+u*np.real(df1(x,y))   
         #df1 est la derivee de f par rapport a x en (xn,yn)                        
-        y=y+u*df2(a,b,x,y) 
+        y=y+u*np.real(df2(x,y)) 
         #df2 est la derivee de f par rapport a y en (xn,yn)
-        Errorlist.append(math.fabs(gab(a,b,x,y)-min))
+        #Errorlist.append(math.fabs(h(x,y)-min))
         n=n+1
     #pl.plot(nlist,xlist,'r')
     pl.plot(xlist,ylist,'r')  #pour afficher l'evolution de (xn,yn) dans le plan
     pl.title(u)
-    ligneNiveauG(2,2/7)
+    ligneNiveauH()
+    pl.plot(xlist,ylist,'b')  #pour afficher l'evolution de (xn,yn) dans le plan
+    pl.title(u)
     #print(len(nlist))
     #pl.plot(nlist,Errorlist)  #pour afficher la courbe d'erreur relatif pour g(1,20)
     #pl.plot(nlist,ylist,'g')
     pl.show()
     
 
-#gradpc(1*10**-6,200,0.001,0,0,dhx,dhy)
+#gradpc(1*10**-6,200,-0.001,0,0,dhx,dhy)
 #gradpc(1*10**-5,200,-0.001,7,1.5,dgx,dgy)
 '''''
 listpas=[-0.99,-0.5,-0.1,-0.01,-0.001]
 for pas in listpas:
     #print(pas)
     gradpc(1*10**-5,120,pas,7,1.5,dgx,dgy)
+    '''
 
-
- def gradamax(eps,m,u,x0,y0,f,df1,df2):
-    k=0
+#chercher un minimum d'une fonction
+def gradamin(eps,m,u,x0,y0,f,df1,df2):
+    n=0
+    listx =[]
+    listy=[]
     xn,yn=x0,y0
-    while(k>m or norme(df1(xn,yn),df2(xn,yn),0)>eps):
-        F1=f((xn,yn)+k*u*(df1(xn,yn),df2(xn,yn)))
-        F2=f((xn,yn)+(k+1)*u*(df1(xn,yn),df2(xn,yn)))
-        while(F2>F1):     #on augmente k tant que f2>f1
-            (xn,yn)=(xn,yn)+u*(df1(xn,yn),df2(xn,yn))
+    while(norme(df1(xn,yn),(df2(xn,yn)),0)>eps):
+        print("norme est egale a ",norme((df1(xn,yn)),(df2(xn,yn)),0))
+        k=0
+        d1=df1(xn,yn) #mise a jour du gradiant
+        d2=df2(xn,yn)
+        F1=f(xn+k*u*d1,yn+k*u*d2)
+        F2=f(xn+(k+1)*u*d1,yn+(k+1)*u*d2)
+        while((F2)<(F1)):     #on augmente k tant que f2>f1
+            listx.append(xn)
+            listy.append(yn)
+            xn=xn+u*d1
+            yn=yn+u*d2 #on avance avec le gradiant constant
+            print(xn,yn)
+            print("norme est egale a ",norme((df1(xn,yn)),(df2(xn,yn)),0))
             k=k+1
+            F1=f(xn+k*u*d1,yn+k*u*d2) 
+            F2=f(xn+(k+1)*u*d1,yn+(k+1)*u*d2)
+        n=n+1
+            
+    #return listx,listy
+    return xn,yn
+
+#print(gradamin(1*10**-4,200,-0.001,7,1.5,g,dgx1,dgy1))
 
 
-'''
+
 
 ################################"
 # Partie D
@@ -309,20 +343,21 @@ def G(A,y,secondMembre):
 
 #resolution systemes lineaires par algorithme d'inversion de matrices
 def InvMatrice(eps,m,A,x0,b):
-    k=0
+    k=1
     yk=x0
     #vecteur initial
     if(np.linalg.norm(G(A,yk,b)) !=0):
-        pk=(np.linalg.norm(G(A,yk,b)))**2/(2*(np.dot(np.dot(np.matrix.transpose(G(A,yk,b)),A),G(A,yk,b))))
+        pk=((np.linalg.norm(G(A,yk,b)))**2)/(2*(np.dot(np.dot(np.matrix.transpose(G(A,yk,b)),A),G(A,yk,b))))
     else:
         pk=0
     #calcul du pas pk
-    yk1=yk-np.dot(pk,G(A,yk,b))
     
-    while(np.linalg.norm(yk1-yk)>eps): 
+    yk1=yk-np.dot(pk,G(A,yk,b))
+
+    while np.linalg.norm(yk1-yk)>eps or k<m :  #np.linalg.norm(yk1-yk)>eps 
         #criteres d'arret
         yk=yk1
-        print(yk1)
+        #print(yk1)
         if(np.linalg.norm(G(A,yk,b)) !=0):
             pk=(np.linalg.norm(G(A,yk,b)))**2/(2*(np.dot(np.dot(np.matrix.transpose(G(A,yk,b)),A),G(A,yk,b))))
         else:
@@ -332,9 +367,82 @@ def InvMatrice(eps,m,A,x0,b):
     
     return yk1
 
-b0=np.array([3, 2])
+
+
+B0=np.array([3, 2])
 Matrice=np.array([[1,1],[1, 0]])
 
-print(InvMatrice(1*10**-6,50,Matrice,(0,0),b0))
+InvMatrice(1*10**-8,50,Matrice,(0,0),B0)
 
 #print(np.dot(Matrice,b0))
+
+def tridiag(n,a,b,c):
+    mat=np.zeros((n,n))
+    for i in range(n):
+        for j in range(n):
+            if i==j:
+                mat[i][j]=b
+            if j==i+1:
+                mat[i][j]=c
+            if i==j+1:
+                mat[i][j]=a
+    return mat
+
+#print(tridiag(50,1,-2,1))
+#Am=[[2,-1,0,0,0],[-1,2,-1,0,0],[0,-1,2,-1,0],[0,0,-1,2,-1],[0,0,0,-1,2,]]
+
+#mat=np.array([[2,-1,0,0,0],[-1,2,-1,0,0],[0,-1,2,-1,0],[0,0,-1,2,-1],[0,0,0,-1,2,]])
+############################################################
+a,b=500,350
+n=4
+deltax=1/(n+1)
+secondmembre=np.zeros(n)
+secondmembre[0]=500/(deltax**2)
+secondmembre[-1]=350/(deltax**2)
+#print(secondmembre)
+
+Am=(1/deltax**2)*tridiag(n,-1,2,-1)
+
+tlist=np.linspace(0,1,n+2)
+
+#InvMatrice(1*10-6,50,Am,np.zeros(50),secondmembre)
+
+Tlist=np.zeros(n+2)
+Tlist[0]=a
+Tlist[-1]=b
+Vinitial= np.zeros(n)
+Vinitial[0]=a
+Vinitial[-1]=b
+Tlist[1:-1]=InvMatrice(1*10-6,n,Am,Vinitial,secondmembre)
+#print(Tlist)
+pl.plot(tlist,Tlist)
+pl.xlabel('x')
+pl.ylabel("T(x)")
+pl.show()
+
+###########################################################
+
+
+def equationChaleur(x0,xf,n,c,f,a,b):
+    #on construit une segmentation de x et t
+    deltax=(xf-x0)/(n+1)
+    xlist=np.linspace(x0,xf,n+2)
+    #construction de la matrice tridiagonale
+    mat= tridiag(n,-1,2-(c*deltax**2),-1)
+    matrice=(1/deltax**2)*mat
+    secmembre=np.full(n, f)
+    secmembre[0]+=a/(deltax**2)
+    secmembre[-1]+=b/(deltax**2)
+    print(secmembre)
+    Tlist=np.zeros(n+2)
+    Tlist[0]=a
+    Tlist[-1]=b
+    Tlist[1:-1]=InvMatrice(1*10-6,n,matrice,np.zeros(n),secmembre)
+    return xlist,Tlist
+
+
+#pl.plot(equationChaleur(0,1,100,0,0,500,350))
+#pl.show()
+
+#print(tridiag(20,1,2,3))
+    
