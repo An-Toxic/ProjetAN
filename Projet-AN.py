@@ -280,17 +280,14 @@ def gradpc(eps,m,u,x0,y0,df1,df2):
         #df1 est la derivee de f par rapport a x en (xn,yn)                        
         y=y+u*np.real(df2(x,y)) 
         #df2 est la derivee de f par rapport a y en (xn,yn)
-        #Errorlist.append(math.fabs(h(x,y)-min))
+        Errorlist.append(math.fabs(g(a,b,x,y)-min)) #list d'erreur relatif pour g
         n=n+1
-    #pl.plot(nlist,xlist,'r')
     pl.plot(xlist,ylist,'r')  #pour afficher l'evolution de (xn,yn) dans le plan
     pl.title(u)
     ligneNiveauH()
     pl.plot(xlist,ylist,'b')  #pour afficher l'evolution de (xn,yn) dans le plan
     pl.title(u)
-    #print(len(nlist))
     #pl.plot(nlist,Errorlist)  #pour afficher la courbe d'erreur relatif pour g(1,20)
-    #pl.plot(nlist,ylist,'g')
     pl.show()
     
 
@@ -393,20 +390,17 @@ def tridiag(n,a,b,c):
 
 #mat=np.array([[2,-1,0,0,0],[-1,2,-1,0,0],[0,-1,2,-1,0],[0,0,-1,2,-1],[0,0,0,-1,2,]])
 ############################################################
+'''''
 a,b=500,350
-n=4
+n=10
 deltax=1/(n+1)
 secondmembre=np.zeros(n)
 secondmembre[0]=500/(deltax**2)
 secondmembre[-1]=350/(deltax**2)
 #print(secondmembre)
-
 Am=(1/deltax**2)*tridiag(n,-1,2,-1)
-
 tlist=np.linspace(0,1,n+2)
-
 #InvMatrice(1*10-6,50,Am,np.zeros(50),secondmembre)
-
 Tlist=np.zeros(n+2)
 Tlist[0]=a
 Tlist[-1]=b
@@ -414,35 +408,42 @@ Vinitial= np.zeros(n)
 Vinitial[0]=a
 Vinitial[-1]=b
 Tlist[1:-1]=InvMatrice(1*10-6,n,Am,Vinitial,secondmembre)
-#print(Tlist)
+
+print(Tlist)
 pl.plot(tlist,Tlist)
 pl.xlabel('x')
 pl.ylabel("T(x)")
 pl.show()
-
+'''
 ###########################################################
 
 
-def equationChaleur(x0,xf,n,c,f,a,b):
+def equationChaleur(x0,xf,m,c,f,Ta,Tb):
     #on construit une segmentation de x et t
-    deltax=(xf-x0)/(n+1)
-    xlist=np.linspace(x0,xf,n+2)
+    delta=(xf-x0)/(m+1)
+    xlists=np.linspace(x0,xf,m+2)
     #construction de la matrice tridiagonale
-    mat= tridiag(n,-1,2-(c*deltax**2),-1)
-    matrice=(1/deltax**2)*mat
-    secmembre=np.full(n, f)
-    secmembre[0]+=a/(deltax**2)
-    secmembre[-1]+=b/(deltax**2)
+    mat= tridiag(m,-1,2+(c*delta**2),-1) 
+    matrice=(1/delta**2)*mat
+    secmembre=np.full(m, f)
     print(secmembre)
-    Tlist=np.zeros(n+2)
-    Tlist[0]=a
-    Tlist[-1]=b
-    Tlist[1:-1]=InvMatrice(1*10-6,n,matrice,np.zeros(n),secmembre)
-    return xlist,Tlist
+    secmembre[0]+=Ta/(delta**2)
+    secmembre[-1]+=Tb/(delta**2)
+    print(secmembre)
+    Tlists=np.zeros(m+2)
+    Tlists[0]=Ta
+    Tlists[-1]=Tb
+    Tlists[1:-1]=InvMatrice(1*10-6,m,matrice,np.zeros(m),secmembre)
+    print(Tlists)
+    print(xlists)
+    pl.plot(xlists,Tlists)
+    pl.xlabel('x')
+    pl.ylabel("T(x)")
+    pl.show()
+    return xlists,Tlists
 
 
-#pl.plot(equationChaleur(0,1,100,0,0,500,350))
-#pl.show()
+equationChaleur(0,1,10,10,10*500,500,350)
 
 #print(tridiag(20,1,2,3))
     
